@@ -1,0 +1,51 @@
+name: train
+
+# Manual: trained model is published as a versioned release asset,
+# pr-scan.yml pins a specific version so PR results are reproducible.
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: codexglue or bac-idor
+        default: codexglue
+        type: choice
+        options: [codexglue, bac-idor]
+      models:
+        description: space separated (lr rf svm)
+        default: lr rf svm
+      n_iter:
+        description: RandomizedSearchCV iterations
+        default: "20"
+      tag:
+        description: model version, e.g. v1
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked --extra data
+      - name: Train
+        run: |
+          uv run bacdetect train \
+            --dataset "${{ inputs.dataset }}" \
+            --models ${{ inputs.models }} \
+            --n-iter "${{ inputs.n_iter }}" \
+            --out models
+      - run: cat models/report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish model release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "model-${{ inputs.tag }}" models/*.joblib models/*.json models/report.md \
+            --title "model ${{ inputs.tag }} (${{ inputs.dataset }})" \
+            --notes-file models/report.md
