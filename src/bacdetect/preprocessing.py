@@ -6,6 +6,7 @@ Steps:
   3. tokenize into keywords / identifiers / operators, keeping identifier names
      (owner_id, current_user carry authorization signal) plus their sub-tokens.
 """
+
 import re
 
 # One pass: match strings first so comment markers inside them are ignored.

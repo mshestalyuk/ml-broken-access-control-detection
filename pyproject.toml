@@ -13,9 +13,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Stage A: CodeXGLUE download from Hugging Face
 data = ["datasets>=2.19"]
-# Scenario 2 (later): CodeBERT / GraphCodeBERT fine-tuning
 transformers = ["torch>=2.2", "transformers>=4.40"]
 
 [project.scripts]
