@@ -1,6 +1,6 @@
 """Code cleaning and tokenization (language-agnostic: works for Python, C, JS, Java).
 
-Steps (spec section 'Wstępna obróbka danych'):
+Steps:
   1. strip comments (string literals are kept intact, so '#' inside a string survives)
   2. standardize whitespace
   3. tokenize into keywords / identifiers / operators, keeping identifier names

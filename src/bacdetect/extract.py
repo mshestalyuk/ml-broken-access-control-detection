@@ -6,8 +6,6 @@
 Other languages can be added later with tree-sitter; this is enough for v0.1.
 """
 
-from __future__ import annotations
-
 import ast
 import re
 import subprocess
