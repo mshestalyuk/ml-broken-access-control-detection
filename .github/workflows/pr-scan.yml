@@ -1,0 +1,52 @@
+name: pr-scan
+
+on:
+  pull_request:
+    paths: ["**/*.py"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  MODEL_VERSION: model-v1   # bump after a new train.yml run
+  MODEL_FILE: lr.joblib
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: Download model
+        id: model
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release download "$MODEL_VERSION" -p "$MODEL_FILE" -D models; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::release $MODEL_VERSION not found, run the train workflow first"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Scan changed functions
+        if: steps.model.outputs.found == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          uv run bacdetect scan \
+            --model "models/$MODEL_FILE" \
+            --base "origin/${{ github.base_ref }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            --output report.md \
+            --post --github-repo "${{ github.repository }}" --pr "${{ github.event.number }}"
+          cat report.md >> "$GITHUB_STEP_SUMMARY"

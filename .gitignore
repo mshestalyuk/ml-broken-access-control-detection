@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# trained models are release assets, not git content
+models/*
+!models/.gitkeep
+
+# downloaded datasets
+data/raw/
+.cache/
+.env
